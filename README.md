@@ -141,3 +141,7 @@ alidns query -ak AK -sk SK -domain example.com --output json | jq .
 ```bash
 go test ./...
 ```
+
+## 许可证
+
+本项目使用 GPLv3-or-later 许可证。详情见 [LICENSE](LICENSE)。
