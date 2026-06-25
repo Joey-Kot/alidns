@@ -149,7 +149,7 @@ func newUpdateFlagSet(stderr io.Writer, globalOutput OutputFormat) (*flag.FlagSe
 }
 
 func printRootUsage(w io.Writer) {
-	_, _ = fmt.Fprintln(w, `用法:
+	_, _ = fmt.Fprint(w, `用法:
   alidns [--output json|pretty] <command> [flags]
   alidns help [command]
 
@@ -179,69 +179,77 @@ func printRootUsage(w io.Writer) {
 }
 
 func printAddUsage(w io.Writer, globalOutput OutputFormat) {
-	_, _ = fmt.Fprintln(w, `
+	_, _ = fmt.Fprint(w, `
 用法:
   alidns add [flags]
 
 说明:
   添加 DNS 记录。
 
-参数:`)
+参数:
+`)
 	fs, _ := newAddFlagSet(w, globalOutput)
 	fs.PrintDefaults()
-	_, _ = fmt.Fprintln(w, `
+	_, _ = fmt.Fprint(w, `
 示例:
   alidns add -ak AK -sk SK -domain example.com -name www -type A -value 1.2.3.4
-  alidns add -ak AK -sk SK -domain example.com -name @ -type TXT -value hello --output json`)
+  alidns add -ak AK -sk SK -domain example.com -name @ -type TXT -value hello --output json
+`)
 }
 
 func printDelUsage(w io.Writer, globalOutput OutputFormat) {
-	_, _ = fmt.Fprintln(w, `
+	_, _ = fmt.Fprint(w, `
 用法:
   alidns del [flags]
 
 说明:
   删除 DNS 记录。
 
-参数:`)
+参数:
+`)
 	fs, _ := newDelFlagSet(w, globalOutput)
 	fs.PrintDefaults()
-	_, _ = fmt.Fprintln(w, `
+	_, _ = fmt.Fprint(w, `
 示例:
-  alidns del -ak AK -sk SK -domain example.com -name www -type A`)
+  alidns del -ak AK -sk SK -domain example.com -name www -type A
+`)
 }
 
 func printQueryUsage(w io.Writer, globalOutput OutputFormat) {
-	_, _ = fmt.Fprintln(w, `
+	_, _ = fmt.Fprint(w, `
 用法:
   alidns query [flags]
 
 说明:
   查询 DNS 记录列表。
 
-参数:`)
+参数:
+`)
 	fs, _ := newQueryFlagSet(w, globalOutput)
 	fs.PrintDefaults()
-	_, _ = fmt.Fprintln(w, `
+	_, _ = fmt.Fprint(w, `
 示例:
   alidns query -ak AK -sk SK -domain example.com
-  alidns query -ak AK -sk SK -domain example.com --output json`)
+  alidns query -ak AK -sk SK -domain example.com --output json
+`)
 }
 
 func printUpdateUsage(w io.Writer, globalOutput OutputFormat) {
-	_, _ = fmt.Fprintln(w, `
+	_, _ = fmt.Fprint(w, `
 用法:
   alidns update [flags]
 
 说明:
   修改 DNS 记录。
 
-参数:`)
+参数:
+`)
 	fs, _ := newUpdateFlagSet(w, globalOutput)
 	fs.PrintDefaults()
-	_, _ = fmt.Fprintln(w, `
+	_, _ = fmt.Fprint(w, `
 示例:
-  alidns update -ak AK -sk SK -id RECORD_ID -name www -type A -value 1.2.3.4`)
+  alidns update -ak AK -sk SK -id RECORD_ID -name www -type A -value 1.2.3.4
+`)
 }
 
 func printCommandUsage(command string, w io.Writer, globalOutput OutputFormat) error {

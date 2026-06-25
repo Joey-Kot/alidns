@@ -1,0 +1,28 @@
+# Binaries and build outputs
+/alidns
+/alidns.exe
+/dist/
+/build/
+/bin/
+
+# Go test and coverage artifacts
+*.test
+*.out
+coverage.*
+
+# Dependency and workspace local files
+/vendor/
+go.work
+go.work.sum
+
+# Local environment files
+.env
+.env.*
+
+# Editor and OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

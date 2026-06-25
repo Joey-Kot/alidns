@@ -1,0 +1,133 @@
+name: Build Latest Release
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: latest-release
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.goos }} ${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: windows
+            asset_os: windows
+            goarch: amd64
+            ext: .exe
+            package: zip
+          - goos: windows
+            asset_os: windows
+            goarch: arm64
+            ext: .exe
+            package: zip
+          - goos: linux
+            asset_os: linux
+            goarch: amd64
+            ext: ""
+            package: tar.gz
+          - goos: linux
+            asset_os: linux
+            goarch: arm64
+            ext: ""
+            package: tar.gz
+          - goos: darwin
+            asset_os: macos
+            goarch: amd64
+            ext: ""
+            package: tar.gz
+          - goos: darwin
+            asset_os: macos
+            goarch: arm64
+            ext: ""
+            package: tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test
+        run: go test ./...
+
+      - name: Build binary
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          package_dir="alidns_${{ matrix.asset_os }}_${GOARCH}"
+          mkdir -p "dist/stage/${package_dir}"
+          go build -trimpath -ldflags "-s -w" -o "dist/stage/${package_dir}/alidns${{ matrix.ext }}" ./cmd/alidns
+          cp LICENSE README.md "dist/stage/${package_dir}/"
+
+      - name: Package artifact
+        working-directory: dist/stage
+        run: |
+          name="alidns_${{ matrix.asset_os }}_${{ matrix.goarch }}"
+          if [ "${{ matrix.package }}" = "zip" ]; then
+            zip -r "../${name}.zip" "${name}"
+            cd ..
+            sha256sum "${name}.zip" > "${name}.zip.sha256"
+          else
+            tar -czf "../${name}.tar.gz" "${name}"
+            cd ..
+            sha256sum "${name}.tar.gz" > "${name}.tar.gz.sha256"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: alidns_${{ matrix.asset_os }}_${{ matrix.goarch }}
+          path: |
+            dist/alidns_${{ matrix.asset_os }}_${{ matrix.goarch }}.*
+          if-no-files-found: error
+
+  release:
+    name: Publish Latest Release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Move Latest tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f Latest "${GITHUB_SHA}"
+          git push origin "refs/tags/Latest" --force
+
+      - name: Recreate Latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete Latest --yes || true
+          gh release create Latest dist/* \
+            --title "Latest" \
+            --notes "Automatically built from ${GITHUB_SHA}."
